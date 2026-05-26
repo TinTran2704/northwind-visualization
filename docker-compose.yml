@@ -3,16 +3,21 @@ version: "3.9"
 # ============================================================
 #  Northwind Analytics — Metabase Stack
 #
-#  Metabase kết nối tới PostgreSQL của ETL repo.
-#  Đảm bảo northwind-etl-pipeline đang chạy trước.
+#  Metabase chạy độc lập, kết nối tới PostgreSQL của ETL repo.
+#  Hai cách kết nối (chọn 1 trong setup wizard):
 #
-#  Ports:
-#    Metabase UI: http://localhost:3000
+#  Option A (KHUYẾN NGHỊ): Shared Docker network
+#    - Host: etl_postgres
+#    - Cần ETL repo đang chạy (network etl_network exists)
+#
+#  Option B (Đơn giản hơn): Host network
+#    - Host: host.docker.internal
+#    - Postgres expose port 5432 ra host (đã có sẵn)
+#    - Hoạt động kể cả Postgres KHÔNG chạy trong Docker
 # ============================================================
 
 services:
 
-  # ── Metabase ───────────────────────────────────────────────
   metabase:
     image: metabase/metabase:v0.50.20
     container_name: northwind_metabase
@@ -20,31 +25,23 @@ services:
     ports:
       - "${METABASE_PORT:-3000}:3000"
     environment:
-      # Metabase dùng H2 embedded DB mặc định (OK cho dev/demo)
-      # Production: dùng Postgres riêng cho Metabase metadata
       MB_DB_TYPE: h2
       MB_DB_FILE: /metabase-data/metabase.db
-
-      # Timezone
       JAVA_TIMEZONE: ${TZ:-Asia/Ho_Chi_Minh}
-
-      # (Optional) Email setup cho alerts
-      # MB_EMAIL_SMTP_HOST: smtp.gmail.com
-      # MB_EMAIL_SMTP_PORT: 587
-
     volumes:
       - metabase_data:/metabase-data
     networks:
       - analytics_net
-      # Cần join cùng network với ETL Postgres
-      - etl_network
-
+      - etl_network   # Cho phép reach etl_postgres (Option A)
+    # Cho phép dùng host.docker.internal trên Linux (Option B)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 60s   # Metabase cần ~60s để khởi động lần đầu
+      start_period: 60s
 
 volumes:
   metabase_data:
@@ -54,7 +51,9 @@ networks:
   analytics_net:
     name: analytics_network
     driver: bridge
-  # Join vào network của ETL repo để reach Postgres
+  
+  # Network của ETL repo — join để dùng Option A
+  # Nếu chưa có (ETL repo chưa start) thì sẽ báo lỗi
   etl_network:
-    external: true        # Network đã được tạo bởi ETL repo
-    name: etl_network     # Phải khớp với network name trong ETL docker-compose.yml
+    external: true
+    name: etl_network
