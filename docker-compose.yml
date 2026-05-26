@@ -1,0 +1,60 @@
+version: "3.9"
+
+# ============================================================
+#  Northwind Analytics — Metabase Stack
+#
+#  Metabase kết nối tới PostgreSQL của ETL repo.
+#  Đảm bảo northwind-etl-pipeline đang chạy trước.
+#
+#  Ports:
+#    Metabase UI: http://localhost:3000
+# ============================================================
+
+services:
+
+  # ── Metabase ───────────────────────────────────────────────
+  metabase:
+    image: metabase/metabase:v0.50.20
+    container_name: northwind_metabase
+    restart: unless-stopped
+    ports:
+      - "${METABASE_PORT:-3000}:3000"
+    environment:
+      # Metabase dùng H2 embedded DB mặc định (OK cho dev/demo)
+      # Production: dùng Postgres riêng cho Metabase metadata
+      MB_DB_TYPE: h2
+      MB_DB_FILE: /metabase-data/metabase.db
+
+      # Timezone
+      JAVA_TIMEZONE: ${TZ:-Asia/Ho_Chi_Minh}
+
+      # (Optional) Email setup cho alerts
+      # MB_EMAIL_SMTP_HOST: smtp.gmail.com
+      # MB_EMAIL_SMTP_PORT: 587
+
+    volumes:
+      - metabase_data:/metabase-data
+    networks:
+      - analytics_net
+      # Cần join cùng network với ETL Postgres
+      - etl_network
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s   # Metabase cần ~60s để khởi động lần đầu
+
+volumes:
+  metabase_data:
+    name: northwind_metabase_data
+
+networks:
+  analytics_net:
+    name: analytics_network
+    driver: bridge
+  # Join vào network của ETL repo để reach Postgres
+  etl_network:
+    external: true        # Network đã được tạo bởi ETL repo
+    name: etl_network     # Phải khớp với network name trong ETL docker-compose.yml
