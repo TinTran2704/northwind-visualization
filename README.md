@@ -14,10 +14,10 @@
 | Data Source | PostgreSQL 16 (warehouse từ ETL repo) |
 | Container | Docker Compose |
 
-## Quickstart
+## Quickstart (< 10 phút)
 
 ```bash
-# 1. Đảm bảo ETL repo đang chạy (Postgres phải up)
+# 1. Đảm bảo ETL repo đang chạy
 cd ../northwind-etl-pipeline
 docker compose up -d postgres
 
@@ -29,7 +29,8 @@ docker compose up -d
 # 3. Mở http://localhost:3000 → setup wizard
 ```
 
-Chi tiết: [`docs/01-setup.md`](docs/01-setup.md)
+**Hướng dẫn chi tiết step-by-step**: [`docs/00-quickstart.md`](docs/00-quickstart.md)  
+**Setup nâng cao + troubleshooting**: [`docs/01-setup.md`](docs/01-setup.md)
 
 ## Cấu trúc thư mục
 
@@ -50,7 +51,8 @@ northwind-analytics-metabase/
 │   └── PULL_REQUEST_TEMPLATE.md
 │
 ├── docs/
-│   ├── 01-setup.md            ← Setup & troubleshooting
+│   ├── 00-quickstart.md       ← ⭐ Đọc đầu tiên — step-by-step setup
+│   ├── 01-setup.md            ← Setup & troubleshooting chi tiết
 │   ├── 02-data-model.md       ← Schema warehouse cho Metabase
 │   ├── 03-questions.md        ← 13+ saved queries (SQL)
 │   ├── 04-dashboards.md       ← Spec 5 dashboards
