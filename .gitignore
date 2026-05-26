@@ -1,0 +1,37 @@
+# ───── Environment ─────
+.env
+*.env.local
+.envrc
+
+# ───── Metabase ─────
+# H2 database files (sensitive!)
+metabase-data/
+*.mv.db
+*.trace.db
+
+# ───── Exports (tùy bạn có muốn commit hay không) ─────
+metabase-config/exports/*.json
+!metabase-config/exports/.gitkeep
+
+# ───── Screenshots (giữ folder, ignore ảnh raw) ─────
+screenshots/*.png
+screenshots/*.jpg
+screenshots/*.jpeg
+!screenshots/.gitkeep
+!screenshots/README.md
+
+# ───── OS ─────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ───── IDE ─────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ───── Logs ─────
+logs/
+*.log
