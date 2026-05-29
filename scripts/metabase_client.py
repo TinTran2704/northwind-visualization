@@ -157,6 +157,30 @@ class MetabaseClient:
         return resp.json()
 
     # ------------------------------------------------------------------
+    # Table / Field lookup
+    # ------------------------------------------------------------------
+
+    def get_table_fields(self, table_id: int) -> dict[str, int]:
+        """Return {field_name: field_id} for a given table."""
+        url = f"{self.base_url}/api/table/{table_id}/query_metadata"
+        logger.info("GET %s", url)
+        resp = self.session.get(url, timeout=30)
+        self._raise_for_status(resp, f"Failed to get fields for table {table_id}")
+        return {f["name"]: f["id"] for f in resp.json().get("fields", [])}
+
+    def get_table_id(self, database_id: int, table_name: str, schema: str = "warehouse") -> int:
+        """Find table_id by name + schema inside a database."""
+        url = f"{self.base_url}/api/database/{database_id}/metadata"
+        logger.info("GET %s (looking for %s.%s)", url, schema, table_name)
+        resp = self.session.get(url, timeout=60)
+        self._raise_for_status(resp, f"Failed to get metadata for database {database_id}")
+        for tbl in resp.json().get("tables", []):
+            if tbl["name"] == table_name and tbl.get("schema") == schema:
+                logger.info("Found table %s.%s → id=%s", schema, table_name, tbl["id"])
+                return tbl["id"]
+        raise ValueError(f"Table '{schema}.{table_name}' not found in database {database_id}")
+
+    # ------------------------------------------------------------------
     # Field metadata
     # ------------------------------------------------------------------
 
