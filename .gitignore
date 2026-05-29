@@ -1,0 +1,25 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+bin/windows/*.log
+*.egg-info/
+
+# Metabase internal DB (never commit)
+metabase.db/
+metabase_db/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Exports (large binaries go to exports/, only .gitkeep is tracked)
+exports/*.json
+exports/*.csv
+exports/*.png
+!exports/.gitkeep
