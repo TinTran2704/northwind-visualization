@@ -67,10 +67,36 @@ class MetabaseClient:
         logger.info("Collection '%s' not found — creating it", name)
         return self._create_collection(name)
 
-    def _create_collection(self, name: str) -> int:
+    def get_or_create_subcollection(self, name: str, parent_id: int) -> int:
+        """Find a child collection by name under parent_id, creating it if absent."""
+        url = f"{self.base_url}/api/collection/{parent_id}/items"
+        logger.info("GET %s (looking for sub-collection '%s')", url, name)
+        resp = self.session.get(url, params={"models": "collection"}, timeout=30)
+        self._raise_for_status(resp, f"Failed to list items in collection {parent_id}")
+        for item in resp.json().get("data", []):
+            if item.get("model") == "collection" and item["name"] == name:
+                logger.info("Found sub-collection '%s' → id=%s", name, item["id"])
+                return item["id"]
+        return self._create_collection(name, parent_id=parent_id)
+
+    def list_collection_cards(self, collection_id: int) -> dict[str, int]:
+        """Return {card_name: card_id} for all cards in a collection."""
+        url = f"{self.base_url}/api/collection/{collection_id}/items"
+        logger.info("GET %s (list cards)", url)
+        resp = self.session.get(url, params={"models": "card"}, timeout=30)
+        self._raise_for_status(resp, f"Failed to list cards in collection {collection_id}")
+        return {
+            item["name"]: item["id"]
+            for item in resp.json().get("data", [])
+            if item.get("model") == "card"
+        }
+
+    def _create_collection(self, name: str, parent_id: int | None = None) -> int:
         url = f"{self.base_url}/api/collection"
-        payload = {"name": name, "color": "#509EE3"}
-        logger.info("POST %s (create collection '%s')", url, name)
+        payload: dict = {"name": name, "color": "#509EE3"}
+        if parent_id is not None:
+            payload["parent_id"] = parent_id
+        logger.info("POST %s (create collection '%s' parent=%s)", url, name, parent_id)
         resp = self.session.post(url, json=payload, timeout=30)
         self._raise_for_status(resp, f"Failed to create collection '{name}'")
         col_id = resp.json()["id"]
