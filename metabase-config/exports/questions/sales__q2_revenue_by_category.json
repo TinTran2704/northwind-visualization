@@ -1,0 +1,8 @@
+{
+  "name": "Q2: Revenue by Category",
+  "collection_path": "Northwind/Sales",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    category_name,\n    SUM(net_amount)      AS total_revenue,\n    SUM(quantity)        AS total_units,\n    COUNT(DISTINCT order_id) AS order_count,\n    ROUND(AVG(discount) * 100, 1) AS avg_discount_pct\nFROM analytics_marts.mart_sales_wide\nGROUP BY category_name\nORDER BY total_revenue DESC",
+  "display": "bar",
+  "description": ""
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Q11: Sales Rep Performance",
+  "collection_path": "Northwind/Employees",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    employee_name,\n    employee_title,\n    COUNT(DISTINCT order_id) AS order_count,\n    SUM(net_amount)          AS total_revenue,\n    ROUND(SUM(net_amount) / COUNT(DISTINCT order_id), 2) AS avg_order_value,\n    COUNT(DISTINCT customer_code) AS unique_customers\nFROM analytics_marts.mart_sales_wide\nGROUP BY employee_name, employee_title\nORDER BY total_revenue DESC",
+  "display": "table",
+  "description": ""
+}

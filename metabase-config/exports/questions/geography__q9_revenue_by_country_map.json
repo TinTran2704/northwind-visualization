@@ -1,0 +1,8 @@
+{
+  "name": "Q9: Revenue by Country — Map",
+  "collection_path": "Northwind/Geography",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    customer_country         AS country_code,\n    customer_country_name    AS country,\n    customer_region          AS region,\n    SUM(net_amount)          AS total_revenue,\n    COUNT(DISTINCT order_id) AS order_count\nFROM analytics_marts.mart_sales_wide\nGROUP BY customer_country, customer_country_name, customer_region\nORDER BY total_revenue DESC",
+  "display": "map",
+  "description": ""
+}

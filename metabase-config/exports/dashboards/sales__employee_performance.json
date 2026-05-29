@@ -1,0 +1,14 @@
+{
+  "name": "Employee Performance",
+  "collection_path": "Northwind/Sales",
+  "description": "",
+  "cards": [
+    {
+      "question_name": "Q11: Sales Rep Performance",
+      "row": 0,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 8
+    }
+  ]
+}

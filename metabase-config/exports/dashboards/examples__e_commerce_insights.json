@@ -1,0 +1,224 @@
+{
+  "name": "E-commerce insights",
+  "collection_path": "Examples",
+  "description": "Quickly take an overview of an e-commerce reseller business and dive into separate tabs that focus on top selling products and demographic insights. Each vendor can log in as a tenant and see their own data sandboxed from all the others.",
+  "cards": [
+    {
+      "question_name": "Value of orders over time (before taxes)",
+      "row": 15,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 7
+    },
+    {
+      "question_name": "Orders according to sources per quarter",
+      "row": 9,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 6
+    },
+    {
+      "question_name": "",
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1
+    },
+    {
+      "question_name": "Buyers by age group",
+      "row": 1,
+      "col": 9,
+      "size_x": 15,
+      "size_y": 6
+    },
+    {
+      "question_name": "",
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1
+    },
+    {
+      "question_name": "Total orders by category",
+      "row": 13,
+      "col": 17,
+      "size_x": 7,
+      "size_y": 5
+    },
+    {
+      "question_name": "Numbers of orders by category per quarter",
+      "row": 13,
+      "col": 0,
+      "size_x": 17,
+      "size_y": 5
+    },
+    {
+      "question_name": "Aerodynamic Copper Knife trend",
+      "row": 3,
+      "col": 17,
+      "size_x": 7,
+      "size_y": 3
+    },
+    {
+      "question_name": "Heavy-Duty Silk Chair trend",
+      "row": 6,
+      "col": 17,
+      "size_x": 7,
+      "size_y": 3
+    },
+    {
+      "question_name": "Enormous Wool Car trend",
+      "row": 9,
+      "col": 17,
+      "size_x": 7,
+      "size_y": 3
+    },
+    {
+      "question_name": "",
+      "row": 1,
+      "col": 17,
+      "size_x": 7,
+      "size_y": 2
+    },
+    {
+      "question_name": "",
+      "row": 0,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1
+    },
+    {
+      "question_name": "Product category orders per individual age",
+      "row": 14,
+      "col": 9,
+      "size_x": 15,
+      "size_y": 6
+    },
+    {
+      "question_name": "Revenue per individual age",
+      "row": 8,
+      "col": 9,
+      "size_x": 15,
+      "size_y": 6
+    },
+    {
+      "question_name": "Best selling products",
+      "row": 1,
+      "col": 0,
+      "size_x": 17,
+      "size_y": 11
+    },
+    {
+      "question_name": "",
+      "row": 12,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1
+    },
+    {
+      "question_name": "Customer satisfaction per category",
+      "row": 19,
+      "col": 0,
+      "size_x": 17,
+      "size_y": 6
+    },
+    {
+      "question_name": "Average product rating overall",
+      "row": 19,
+      "col": 17,
+      "size_x": 7,
+      "size_y": 6
+    },
+    {
+      "question_name": "Orders by source per individual age",
+      "row": 20,
+      "col": 9,
+      "size_x": 15,
+      "size_y": 6
+    },
+    {
+      "question_name": "",
+      "row": 7,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1
+    },
+    {
+      "question_name": "Revenue and orders over time",
+      "row": 4,
+      "col": 6,
+      "size_x": 18,
+      "size_y": 5
+    },
+    {
+      "question_name": "",
+      "row": 18,
+      "col": 0,
+      "size_x": 24,
+      "size_y": 1
+    },
+    {
+      "question_name": "Number of orders per month",
+      "row": 1,
+      "col": 12,
+      "size_x": 6,
+      "size_y": 3
+    },
+    {
+      "question_name": "Discount given per quarter",
+      "row": 1,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 3
+    },
+    {
+      "question_name": "Revenue per quarter",
+      "row": 1,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 3
+    },
+    {
+      "question_name": "Unique customers per month",
+      "row": 1,
+      "col": 18,
+      "size_x": 6,
+      "size_y": 3
+    },
+    {
+      "question_name": "Revenue goal for this quarter",
+      "row": 4,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 5
+    },
+    {
+      "question_name": "Revenue by state",
+      "row": 1,
+      "col": 0,
+      "size_x": 9,
+      "size_y": 6
+    },
+    {
+      "question_name": "Product category orders per age group",
+      "row": 14,
+      "col": 0,
+      "size_x": 9,
+      "size_y": 6
+    },
+    {
+      "question_name": "Revenue per age group",
+      "row": 8,
+      "col": 0,
+      "size_x": 9,
+      "size_y": 6
+    },
+    {
+      "question_name": "Orders by source per age group",
+      "row": 20,
+      "col": 0,
+      "size_x": 9,
+      "size_y": 6
+    }
+  ]
+}

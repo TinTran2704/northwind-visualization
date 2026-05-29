@@ -1,0 +1,28 @@
+{
+  "name": "Customer Geography",
+  "collection_path": "Northwind/Marketing",
+  "description": "",
+  "cards": [
+    {
+      "question_name": "Q9: Revenue by Country — Map",
+      "row": 0,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 6
+    },
+    {
+      "question_name": "Q10: Revenue by Region",
+      "row": 6,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 4
+    },
+    {
+      "question_name": "Q3: Top 10 Customers",
+      "row": 6,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 4
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Q10: Revenue by Region",
+  "collection_path": "Northwind/Geography",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    customer_region,\n    SUM(net_amount)          AS total_revenue,\n    COUNT(DISTINCT order_id) AS order_count,\n    COUNT(DISTINCT customer_code) AS unique_customers\nFROM analytics_marts.mart_sales_wide\nGROUP BY customer_region\nORDER BY total_revenue DESC",
+  "display": "bar",
+  "description": ""
+}

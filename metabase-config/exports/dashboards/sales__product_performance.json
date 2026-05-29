@@ -1,0 +1,35 @@
+{
+  "name": "Product Performance",
+  "collection_path": "Northwind/Sales",
+  "description": "",
+  "cards": [
+    {
+      "question_name": "Q2: Revenue by Category",
+      "row": 0,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 4
+    },
+    {
+      "question_name": "Q7: Category Breakdown — Pie",
+      "row": 0,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 4
+    },
+    {
+      "question_name": "Q6: Top 10 Products by Revenue",
+      "row": 4,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 6
+    },
+    {
+      "question_name": "Q8: Discount Analysis by Category",
+      "row": 10,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 4
+    }
+  ]
+}

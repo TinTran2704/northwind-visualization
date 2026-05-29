@@ -1,0 +1,21 @@
+{
+  "name": "ETL Pipeline Health",
+  "collection_path": "Northwind/Operations",
+  "description": "",
+  "cards": [
+    {
+      "question_name": "Q12: ETL Pipeline Health",
+      "row": 0,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 6
+    },
+    {
+      "question_name": "Q13: Shipping Time Analysis",
+      "row": 6,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 4
+    }
+  ]
+}

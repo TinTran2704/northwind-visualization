@@ -1,0 +1,8 @@
+{
+  "name": "Q7: Category Breakdown — Pie",
+  "collection_path": "Northwind/Products",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    category_name,\n    SUM(net_amount) AS revenue,\n    ROUND(SUM(net_amount) * 100.0 / SUM(SUM(net_amount)) OVER (), 1) AS pct\nFROM analytics_marts.mart_sales_wide\nGROUP BY category_name\nORDER BY revenue DESC",
+  "display": "pie",
+  "description": ""
+}

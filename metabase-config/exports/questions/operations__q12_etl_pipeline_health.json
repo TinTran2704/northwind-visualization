@@ -1,0 +1,8 @@
+{
+  "name": "Q12: ETL Pipeline Health",
+  "collection_path": "Northwind/Operations",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    batch_id,\n    status,\n    started_at,\n    ended_at,\n    ROUND(EXTRACT(EPOCH FROM (ended_at - started_at)), 1) AS duration_sec,\n    rows_extracted,\n    rows_loaded,\n    rows_rejected,\n    error_summary\nFROM metadata.etl_runs\nORDER BY started_at DESC\nLIMIT 20",
+  "display": "table",
+  "description": ""
+}

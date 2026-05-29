@@ -1,0 +1,8 @@
+{
+  "name": "Q13: Shipping Time Analysis",
+  "collection_path": "Northwind/Operations",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    s.company_name AS shipper_name,\n    AVG(\n        CASE\n            WHEN shipped_date_sk IS NOT NULL AND shipped_date_sk != 19000101\n            THEN (\n                SELECT EXTRACT(DAY FROM (s_date.full_date - o_date.full_date))\n                FROM warehouse.dim_date s_date, warehouse.dim_date o_date\n                WHERE s_date.date_sk = f.shipped_date_sk\n                  AND o_date.date_sk = f.order_date_sk\n            )\n        END\n    ) AS avg_shipping_days,\n    COUNT(DISTINCT f.order_id) AS order_count\nFROM warehouse.fact_sales f\nJOIN warehouse.dim_shipper s ON f.shipper_sk = s.shipper_sk\nWHERE s.shipper_sk != -1\nGROUP BY s.company_name",
+  "display": "table",
+  "description": ""
+}

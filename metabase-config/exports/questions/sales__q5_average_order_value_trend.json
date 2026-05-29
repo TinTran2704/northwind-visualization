@@ -1,0 +1,8 @@
+{
+  "name": "Q5: Average Order Value Trend",
+  "collection_path": "Northwind/Sales",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    order_year,\n    order_month,\n    order_month_name,\n    ROUND(SUM(net_amount) / COUNT(DISTINCT order_id), 2) AS avg_order_value,\n    COUNT(DISTINCT order_id) AS order_count\nFROM analytics_marts.mart_sales_wide\nGROUP BY order_year, order_month, order_month_name\nORDER BY order_year, order_month",
+  "display": "line",
+  "description": ""
+}

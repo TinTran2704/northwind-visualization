@@ -1,0 +1,42 @@
+{
+  "name": "Sales Overview",
+  "collection_path": "Northwind/Executive",
+  "description": "",
+  "cards": [
+    {
+      "question_name": "Q1: Total Revenue by Month",
+      "row": 0,
+      "col": 0,
+      "size_x": 12,
+      "size_y": 4
+    },
+    {
+      "question_name": "Q2: Revenue by Category",
+      "row": 4,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 4
+    },
+    {
+      "question_name": "Q4: Sales by Quarter",
+      "row": 4,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 4
+    },
+    {
+      "question_name": "Q5: Average Order Value Trend",
+      "row": 8,
+      "col": 0,
+      "size_x": 6,
+      "size_y": 4
+    },
+    {
+      "question_name": "Q3: Top 10 Customers",
+      "row": 8,
+      "col": 6,
+      "size_x": 6,
+      "size_y": 4
+    }
+  ]
+}

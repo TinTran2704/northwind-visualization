@@ -1,0 +1,8 @@
+{
+  "name": "Q4: Sales by Quarter",
+  "collection_path": "Northwind/Sales",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    order_year,\n    order_quarter,\n    CONCAT(order_year, ' Q', order_quarter) AS quarter_label,\n    SUM(net_amount) AS total_revenue\nFROM analytics_marts.mart_sales_wide\nGROUP BY order_year, order_quarter\nORDER BY order_year, order_quarter",
+  "display": "bar",
+  "description": ""
+}

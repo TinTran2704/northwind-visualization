@@ -1,0 +1,8 @@
+{
+  "name": "Q3: Top 10 Customers",
+  "collection_path": "Northwind/Sales",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    customer_code,\n    customer_name,\n    customer_country,\n    SUM(net_amount)          AS total_revenue,\n    COUNT(DISTINCT order_id) AS order_count,\n    ROUND(SUM(net_amount) / COUNT(DISTINCT order_id), 2) AS avg_order_value\nFROM analytics_marts.mart_sales_wide\nGROUP BY customer_code, customer_name, customer_country\nORDER BY total_revenue DESC\nLIMIT 10",
+  "display": "table",
+  "description": ""
+}

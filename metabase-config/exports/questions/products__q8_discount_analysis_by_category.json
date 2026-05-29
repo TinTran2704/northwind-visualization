@@ -1,0 +1,8 @@
+{
+  "name": "Q8: Discount Analysis by Category",
+  "collection_path": "Northwind/Products",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    category_name,\n    ROUND(AVG(discount) * 100, 1)   AS avg_discount_pct,\n    ROUND(MIN(discount) * 100, 1)   AS min_discount_pct,\n    ROUND(MAX(discount) * 100, 1)   AS max_discount_pct,\n    SUM(net_amount)                  AS total_revenue,\n    SUM(quantity * unit_price) - SUM(net_amount) AS total_discount_given\nFROM analytics_marts.mart_sales_wide\nGROUP BY category_name\nORDER BY avg_discount_pct DESC",
+  "display": "table",
+  "description": ""
+}

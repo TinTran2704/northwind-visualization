@@ -1,0 +1,8 @@
+{
+  "name": "Q1: Total Revenue by Month",
+  "collection_path": "Northwind/Sales",
+  "database_name": "Northwind DW",
+  "sql": "SELECT\n    order_year,\n    order_month,\n    order_month_name,\n    SUM(net_amount) AS total_revenue,\n    COUNT(DISTINCT order_id) AS order_count\nFROM analytics_marts.mart_sales_wide\nGROUP BY order_year, order_month, order_month_name\nORDER BY order_year, order_month",
+  "display": "line",
+  "description": ""
+}
