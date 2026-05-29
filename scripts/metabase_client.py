@@ -165,22 +165,72 @@ class MetabaseClient:
         size_x: int,
         size_y: int,
     ) -> dict:
+        # Metabase v0.47+: PUT replaces the full cards list, so fetch existing first
         url = f"{self.base_url}/api/dashboard/{dashboard_id}/cards"
-        payload = {
-            "cardId": card_id,
+        existing = self.get_dashboard_cards(dashboard_id)
+        kept = [
+            {
+                "id": dc["id"],
+                "card_id": dc.get("card_id"),
+                "row": dc["row"],
+                "col": dc["col"],
+                "size_x": dc["size_x"],
+                "size_y": dc["size_y"],
+                "series": dc.get("series", []),
+                "parameter_mappings": dc.get("parameter_mappings", []),
+                "visualization_settings": dc.get("visualization_settings", {}),
+            }
+            for dc in existing
+        ]
+        kept.append({
+            "id": -1,
+            "card_id": card_id,
             "row": row,
             "col": col,
             "size_x": size_x,
             "size_y": size_y,
-        }
+            "series": [],
+            "parameter_mappings": [],
+            "visualization_settings": {},
+        })
         logger.info(
-            "POST %s (add card_id=%s to dashboard_id=%s at row=%s col=%s)",
+            "PUT %s (add card_id=%s to dashboard_id=%s at row=%s col=%s)",
             url, card_id, dashboard_id, row, col,
         )
-        resp = self.session.post(url, json=payload, timeout=30)
+        resp = self.session.put(url, json={"cards": kept}, timeout=30)
         self._raise_for_status(resp, f"Failed to add card {card_id} to dashboard {dashboard_id}")
         logger.info("Added card_id=%s to dashboard_id=%s", card_id, dashboard_id)
         return resp.json()
+
+    # ------------------------------------------------------------------
+    # Questions / Dashboards lookup
+    # ------------------------------------------------------------------
+
+    def list_all_questions(self) -> dict[str, int]:
+        """Return {card_name: card_id} across all collections."""
+        url = f"{self.base_url}/api/card"
+        logger.info("GET %s (all questions)", url)
+        resp = self.session.get(url, timeout=30)
+        self._raise_for_status(resp, "Failed to list all questions")
+        return {c["name"]: c["id"] for c in resp.json()}
+
+    def list_collection_dashboards(self, collection_id: int) -> dict[str, int]:
+        """Return {dashboard_name: dashboard_id} for a collection."""
+        url = f"{self.base_url}/api/collection/{collection_id}/items"
+        resp = self.session.get(url, params={"models": "dashboard"}, timeout=30)
+        self._raise_for_status(resp, f"Failed to list dashboards in collection {collection_id}")
+        return {
+            item["name"]: item["id"]
+            for item in resp.json().get("data", [])
+            if item.get("model") == "dashboard"
+        }
+
+    def get_dashboard_cards(self, dashboard_id: int) -> list[dict]:
+        """Return all dashcards currently on a dashboard."""
+        url = f"{self.base_url}/api/dashboard/{dashboard_id}"
+        resp = self.session.get(url, timeout=30)
+        self._raise_for_status(resp, f"Failed to get dashboard {dashboard_id}")
+        return resp.json().get("dashcards", [])
 
     # ------------------------------------------------------------------
     # Table / Field lookup
