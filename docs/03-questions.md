@@ -260,7 +260,7 @@ LIMIT 20
 
 ```sql
 SELECT
-    shipper_name,
+    s.company_name AS shipper_name,
     AVG(
         CASE
             WHEN shipped_date_sk IS NOT NULL AND shipped_date_sk != 19000101
