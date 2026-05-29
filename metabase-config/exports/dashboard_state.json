@@ -1,0 +1,154 @@
+{
+  "dashboards": [
+    {
+      "name": "Sales Overview",
+      "id": 5,
+      "cards": [
+        {
+          "question": "Q1: Total Revenue by Month",
+          "card_id": 27,
+          "row": 0,
+          "col": 0,
+          "size_x": 12,
+          "size_y": 4
+        },
+        {
+          "question": "Q2: Revenue by Category",
+          "card_id": 28,
+          "row": 4,
+          "col": 0,
+          "size_x": 6,
+          "size_y": 4
+        },
+        {
+          "question": "Q4: Sales by Quarter",
+          "card_id": 30,
+          "row": 4,
+          "col": 6,
+          "size_x": 6,
+          "size_y": 4
+        },
+        {
+          "question": "Q5: Average Order Value Trend",
+          "card_id": 31,
+          "row": 8,
+          "col": 0,
+          "size_x": 6,
+          "size_y": 4
+        },
+        {
+          "question": "Q3: Top 10 Customers",
+          "card_id": 29,
+          "row": 8,
+          "col": 6,
+          "size_x": 6,
+          "size_y": 4
+        }
+      ]
+    },
+    {
+      "name": "Product Performance",
+      "id": 6,
+      "cards": [
+        {
+          "question": "Q2: Revenue by Category",
+          "card_id": 28,
+          "row": 0,
+          "col": 0,
+          "size_x": 6,
+          "size_y": 4
+        },
+        {
+          "question": "Q7: Category Breakdown — Pie",
+          "card_id": 33,
+          "row": 0,
+          "col": 6,
+          "size_x": 6,
+          "size_y": 4
+        },
+        {
+          "question": "Q6: Top 10 Products by Revenue",
+          "card_id": 32,
+          "row": 4,
+          "col": 0,
+          "size_x": 12,
+          "size_y": 6
+        },
+        {
+          "question": "Q8: Discount Analysis by Category",
+          "card_id": 34,
+          "row": 10,
+          "col": 0,
+          "size_x": 12,
+          "size_y": 4
+        }
+      ]
+    },
+    {
+      "name": "Customer Geography",
+      "id": 7,
+      "cards": [
+        {
+          "question": "Q9: Revenue by Country — Map",
+          "card_id": 35,
+          "row": 0,
+          "col": 0,
+          "size_x": 12,
+          "size_y": 6
+        },
+        {
+          "question": "Q10: Revenue by Region",
+          "card_id": 36,
+          "row": 6,
+          "col": 0,
+          "size_x": 6,
+          "size_y": 4
+        },
+        {
+          "question": "Q3: Top 10 Customers",
+          "card_id": 29,
+          "row": 6,
+          "col": 6,
+          "size_x": 6,
+          "size_y": 4
+        }
+      ]
+    },
+    {
+      "name": "Employee Performance",
+      "id": 8,
+      "cards": [
+        {
+          "question": "Q11: Sales Rep Performance",
+          "card_id": 37,
+          "row": 0,
+          "col": 0,
+          "size_x": 12,
+          "size_y": 8
+        }
+      ]
+    },
+    {
+      "name": "ETL Pipeline Health",
+      "id": 9,
+      "cards": [
+        {
+          "question": "Q12: ETL Pipeline Health",
+          "card_id": 38,
+          "row": 0,
+          "col": 0,
+          "size_x": 12,
+          "size_y": 6
+        },
+        {
+          "question": "Q13: Shipping Time Analysis",
+          "card_id": 39,
+          "row": 6,
+          "col": 0,
+          "size_x": 12,
+          "size_y": 4
+        }
+      ]
+    }
+  ]
+}
