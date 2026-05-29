@@ -18,8 +18,14 @@ metabase_db/
 .DS_Store
 Thumbs.db
 
-# Exports (large binaries go to exports/, only .gitkeep is tracked)
+# Root exports/ (screenshots staging area) — track only .gitkeep
 exports/*.json
 exports/*.csv
 exports/*.png
 !exports/.gitkeep
+
+# metabase-config/exports/ — COMMITTED intentionally for version control
+# These JSON files allow recreating Metabase config on a new machine via:
+#   python scripts/05_import_config.py  (or: make import)
+# To stop tracking, uncomment the line below:
+# metabase-config/exports/
