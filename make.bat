@@ -13,12 +13,14 @@ set "COMPOSE=docker compose"
 
 if "%1"==""           goto HELP
 if "%1"=="help"       goto HELP
-if "%1"=="up"         goto UP
-if "%1"=="setup"      goto SETUP
-if "%1"=="export"     goto EXPORT
-if "%1"=="import"     goto IMPORT
-if "%1"=="reset"      goto RESET
-if "%1"=="screenshot" goto SCREENSHOT
+if "%1"=="up"               goto UP
+if "%1"=="setup"            goto SETUP
+if "%1"=="setup-metabase"   goto SETUP_METABASE
+if "%1"=="export"           goto EXPORT
+if "%1"=="import"           goto IMPORT
+if "%1"=="reset"            goto RESET
+if "%1"=="reset-metabase"   goto RESET_METABASE
+if "%1"=="screenshot"       goto SCREENSHOT
 
 echo [ERROR] Unknown target: %1
 goto HELP
@@ -74,6 +76,30 @@ if errorlevel 1 (echo [ERROR] Script 03 failed & exit /b 1)
 
 echo.
 echo [make setup] Done! Open http://localhost:3000
+goto DONE
+
+:: ── setup-metabase ─────────────────────────────────────────
+:SETUP_METABASE
+echo [make setup-metabase] YAML-driven setup (questions + dashboards from config/)...
+cd /d "%ROOT%"
+if not exist "%ROOT%.venv\Scripts\activate.bat" (
+    echo [INFO] Creating virtual environment...
+    python -m venv .venv
+)
+call "%ROOT%.venv\Scripts\activate.bat"
+pip install -q -r requirements.txt
+python scripts\setup_metabase.py
+if errorlevel 1 (echo [ERROR] setup_metabase failed & exit /b 1)
+goto DONE
+
+:: ── reset-metabase ──────────────────────────────────────────
+:RESET_METABASE
+echo [make reset-metabase] Deleting Metabase data volume and restarting...
+cd /d "%ROOT%"
+%COMPOSE% down -v
+%COMPOSE% up -d
+echo [OK] Metabase reset. Complete wizard at http://localhost:3000 then run:
+echo      make setup-metabase
 goto DONE
 
 :: ── export ──────────────────────────────────────────────────
@@ -145,11 +171,13 @@ echo.
 echo  Usage: make ^<target^>
 echo.
 echo  Targets:
-echo    up          Start Metabase container (waits for healthy)
-echo    setup       Install deps + run scripts 01-03 (semantic types, questions, dashboards)
-echo    export      Export Questions + Dashboards to metabase-config/exports/
-echo    import      Recreate Questions + Dashboards from exports (for new machines)
-echo    reset       Delete all Metabase data and restart fresh
+echo    up               Start Metabase container (waits for healthy)
+echo    setup-metabase   YAML-driven setup: create all 13 questions + 5 dashboards
+echo    setup            Legacy numbered scripts 01-03
+echo    export           Export Questions + Dashboards to metabase-config/exports/
+echo    import           Recreate from exports on a new machine
+echo    reset-metabase   Wipe Metabase volume + restart (destructive!)
+echo    reset            Delete all Metabase data and restart fresh
 echo    screenshot  Show checklist of dashboards to screenshot
 echo    help        Show this message
 echo.
