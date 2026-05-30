@@ -1,0 +1,134 @@
+# config/metabase/dashboards.yaml
+# 5 dashboards per docs/04-dashboards.md.
+# question names must match questions.yaml exactly.
+# Grid: 12 columns wide; size_y in ~100px units.
+
+# Root parent for all collections
+root_collection: "Northwind"
+
+dashboards:
+
+  # ── Dashboard 1: Sales Overview ────────────────────────────────────
+  - name: "Sales Overview"
+    collection: "Executive"
+    description: "Tong quan doanh so toan cong ty — CEO / Sales VP"
+    cards:
+      # Row 0: full-width revenue trend
+      - question: "Sales — Revenue by Month"
+        row: 0
+        col: 0
+        size_x: 12
+        size_y: 4
+
+      # Row 4: category breakdown + quarterly comparison
+      - question: "Sales — Revenue by Category"
+        row: 4
+        col: 0
+        size_x: 6
+        size_y: 4
+
+      - question: "Sales — Sales by Quarter"
+        row: 4
+        col: 6
+        size_x: 6
+        size_y: 4
+
+      # Row 8: avg order value + top customers
+      - question: "Sales — Average Order Value"
+        row: 8
+        col: 0
+        size_x: 6
+        size_y: 4
+
+      - question: "Sales — Top 10 Customers"
+        row: 8
+        col: 6
+        size_x: 6
+        size_y: 4
+
+  # ── Dashboard 2: Product Performance ──────────────────────────────
+  - name: "Product Performance"
+    collection: "Sales"
+    description: "Phan tich hieu suat san pham — Product Manager"
+    cards:
+      # Row 0: category bar + distribution pie
+      - question: "Sales — Revenue by Category"
+        row: 0
+        col: 0
+        size_x: 6
+        size_y: 4
+
+      - question: "Products — Category Distribution"
+        row: 0
+        col: 6
+        size_x: 6
+        size_y: 4
+
+      # Row 4: top 10 products table
+      - question: "Products — Top 10 by Revenue"
+        row: 4
+        col: 0
+        size_x: 12
+        size_y: 6
+
+      # Row 10: discount analysis
+      - question: "Products — Discount Analysis"
+        row: 10
+        col: 0
+        size_x: 12
+        size_y: 4
+
+  # ── Dashboard 3: Customer Geography ───────────────────────────────
+  - name: "Customer Geography"
+    collection: "Marketing"
+    description: "Phan bo khach hang dia ly — Marketing"
+    cards:
+      # Row 0: full-width map
+      - question: "Geography — Revenue by Country"
+        row: 0
+        col: 0
+        size_x: 12
+        size_y: 6
+
+      # Row 6: region bar + top customers
+      - question: "Geography — Revenue by Region"
+        row: 6
+        col: 0
+        size_x: 6
+        size_y: 4
+
+      - question: "Sales — Top 10 Customers"
+        row: 6
+        col: 6
+        size_x: 6
+        size_y: 4
+
+  # ── Dashboard 4: Employee Performance ─────────────────────────────
+  - name: "Employee Performance"
+    collection: "Sales"
+    description: "Hieu suat sales rep — Sales Manager"
+    cards:
+      - question: "Employees — Sales Rep Performance"
+        row: 0
+        col: 0
+        size_x: 12
+        size_y: 8
+
+  # ── Dashboard 5: ETL Pipeline Health ──────────────────────────────
+  - name: "ETL Pipeline Health"
+    collection: "Operations"
+    description: "Monitoring pipeline ETL — Data Engineer"
+    cards:
+      # Row 0: ETL run history table
+      - question: "Operations — ETL Pipeline Health"
+        row: 0
+        col: 0
+        size_x: 12
+        size_y: 6
+
+      # Row 6: shipping analysis
+      - question: "Operations — Shipping Time Analysis"
+        row: 6
+        col: 0
+        size_x: 12
+        size_y: 4
