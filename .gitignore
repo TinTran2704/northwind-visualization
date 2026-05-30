@@ -1,6 +1,9 @@
 # Secrets
 .env
 
+# Runtime state (machine-specific Metabase IDs)
+scripts/state.json
+
 # Python
 __pycache__/
 *.pyc
