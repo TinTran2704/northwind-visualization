@@ -1,111 +1,213 @@
 """
-Metabase REST API client for automating Questions and Dashboards.
+Thin wrapper around the Metabase REST API.
+
+Usage:
+    from scripts.metabase_client import MetabaseClient, client_from_env
+    client = client_from_env()
+    db_id = client.find_database("Northwind DW")
 """
 import logging
 import os
-from typing import Optional
+from typing import Any
 
 import requests
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
+
+# ---------------------------------------------------------------------------
+# Exceptions
+# ---------------------------------------------------------------------------
+
+class MetabaseAPIError(Exception):
+    def __init__(self, status_code: int, detail: Any, url: str) -> None:
+        super().__init__(f"HTTP {status_code} at {url}: {detail}")
+        self.status_code = status_code
+        self.detail = detail
+
+
+# ---------------------------------------------------------------------------
+# Client
+# ---------------------------------------------------------------------------
 
 class MetabaseClient:
-    def __init__(self, base_url: str, username: str, password: str) -> None:
-        self.base_url = base_url.rstrip("/")
-        self.session = requests.Session()
+    def __init__(self, url: str, username: str, password: str) -> None:
+        self.base_url = url.rstrip("/")
+        self.session  = requests.Session()
         self._authenticate(username, password)
 
-    # ------------------------------------------------------------------
-    # Auth
-    # ------------------------------------------------------------------
+    # ── Low-level HTTP ──────────────────────────────────────────────────
 
     def _authenticate(self, username: str, password: str) -> None:
-        url = f"{self.base_url}/api/session"
-        payload = {"username": username, "password": password}
-        logger.info("POST %s (authenticating as %s)", url, username)
+        url  = f"{self.base_url}/api/session"
+        resp = self.session.post(url, json={"username": username, "password": password}, timeout=30)
+        logger.info("POST %s → %s", url, resp.status_code)
+        self._check(resp)
+        self.session.headers["X-Metabase-Session"] = resp.json()["id"]
+        logger.info("Authenticated as %s", username)
+
+    def get(self, endpoint: str, **params) -> Any:
+        url  = f"{self.base_url}{endpoint}"
+        resp = self.session.get(url, params=params or None, timeout=60)
+        logger.info("GET %s → %s", url, resp.status_code)
+        self._check(resp)
+        return resp.json()
+
+    def post(self, endpoint: str, payload: dict) -> Any:
+        url  = f"{self.base_url}{endpoint}"
         resp = self.session.post(url, json=payload, timeout=30)
-        self._raise_for_status(resp, "Authentication failed")
-        token = resp.json()["id"]
-        self.session.headers.update({"X-Metabase-Session": token})
-        logger.info("Authenticated — session token acquired")
+        logger.info("POST %s → %s", url, resp.status_code)
+        self._check(resp)
+        return resp.json()
 
-    # ------------------------------------------------------------------
-    # Databases
-    # ------------------------------------------------------------------
+    def put(self, endpoint: str, payload: dict) -> Any:
+        url  = f"{self.base_url}{endpoint}"
+        resp = self.session.put(url, json=payload, timeout=30)
+        logger.info("PUT %s → %s", url, resp.status_code)
+        self._check(resp)
+        return resp.json()
 
-    def get_database_id(self, name: str) -> int:
-        url = f"{self.base_url}/api/database"
-        logger.info("GET %s", url)
-        resp = self.session.get(url, timeout=30)
-        self._raise_for_status(resp, "Failed to list databases")
-        databases = resp.json().get("data", resp.json())
-        for db in databases:
+    def _check(self, resp: requests.Response) -> None:
+        if not resp.ok:
+            try:
+                detail = resp.json()
+            except Exception:
+                detail = resp.text
+            raise MetabaseAPIError(resp.status_code, detail, resp.url)
+
+    # ── High-level helpers ──────────────────────────────────────────────
+
+    def find_database(self, name: str) -> int | None:
+        data = self.get("/api/database")
+        dbs  = data.get("data", data) if isinstance(data, dict) else data
+        for db in dbs:
             if db["name"] == name:
                 logger.info("Found database '%s' → id=%s", name, db["id"])
                 return db["id"]
-        raise ValueError(f"Database '{name}' not found. Available: {[d['name'] for d in databases]}")
+        return None
 
-    # ------------------------------------------------------------------
-    # Collections
-    # ------------------------------------------------------------------
+    def find_or_create_collection(self, name: str, parent_id: int | None = None) -> int:
+        if parent_id is not None:
+            items = self.get(f"/api/collection/{parent_id}/items", models="collection")
+            cols  = [i for i in items.get("data", []) if i.get("model") == "collection"]
+        else:
+            body = self.get("/api/collection")
+            cols = body if isinstance(body, list) else body.get("data", [])
 
-    def get_collection_id(self, name: str) -> int:
-        url = f"{self.base_url}/api/collection"
-        logger.info("GET %s", url)
-        resp = self.session.get(url, timeout=30)
-        self._raise_for_status(resp, "Failed to list collections")
-        body = resp.json()
-        for col in (body if isinstance(body, list) else body.get("data", [])):
+        for col in cols:
             if col["name"] == name:
                 logger.info("Found collection '%s' → id=%s", name, col["id"])
                 return col["id"]
-        logger.info("Collection '%s' not found — creating it", name)
-        return self._create_collection(name)
 
-    def get_or_create_subcollection(self, name: str, parent_id: int) -> int:
-        """Find a child collection by name under parent_id, creating it if absent."""
-        url = f"{self.base_url}/api/collection/{parent_id}/items"
-        logger.info("GET %s (looking for sub-collection '%s')", url, name)
-        resp = self.session.get(url, params={"models": "collection"}, timeout=30)
-        self._raise_for_status(resp, f"Failed to list items in collection {parent_id}")
-        for item in resp.json().get("data", []):
-            if item.get("model") == "collection" and item["name"] == name:
-                logger.info("Found sub-collection '%s' → id=%s", name, item["id"])
-                return item["id"]
-        return self._create_collection(name, parent_id=parent_id)
-
-    def list_collection_cards(self, collection_id: int) -> dict[str, int]:
-        """Return {card_name: card_id} for all cards in a collection."""
-        url = f"{self.base_url}/api/collection/{collection_id}/items"
-        logger.info("GET %s (list cards)", url)
-        resp = self.session.get(url, params={"models": "card"}, timeout=30)
-        self._raise_for_status(resp, f"Failed to list cards in collection {collection_id}")
-        return {
-            item["name"]: item["id"]
-            for item in resp.json().get("data", [])
-            if item.get("model") == "card"
-        }
-
-    def _create_collection(self, name: str, parent_id: int | None = None) -> int:
-        url = f"{self.base_url}/api/collection"
         payload: dict = {"name": name, "color": "#509EE3"}
         if parent_id is not None:
             payload["parent_id"] = parent_id
-        logger.info("POST %s (create collection '%s' parent=%s)", url, name, parent_id)
-        resp = self.session.post(url, json=payload, timeout=30)
-        self._raise_for_status(resp, f"Failed to create collection '{name}'")
-        col_id = resp.json()["id"]
-        logger.info("Created collection '%s' → id=%s", name, col_id)
-        return col_id
+        result = self.post("/api/collection", payload)
+        logger.info("Created collection '%s' → id=%s", name, result["id"])
+        return result["id"]
 
-    # ------------------------------------------------------------------
-    # Questions (Cards)
-    # ------------------------------------------------------------------
+    def find_question(self, name: str, collection_id: int) -> int | None:
+        items = self.get(f"/api/collection/{collection_id}/items", models="card")
+        for item in items.get("data", []):
+            if item.get("model") == "card" and item["name"] == name:
+                return item["id"]
+        return None
+
+    def find_dashboard(self, name: str, collection_id: int) -> int | None:
+        items = self.get(f"/api/collection/{collection_id}/items", models="dashboard")
+        for item in items.get("data", []):
+            if item.get("model") == "dashboard" and item["name"] == name:
+                return item["id"]
+        return None
+
+    def create_question(self, payload: dict) -> int:
+        result = self.post("/api/card", payload)
+        logger.info("Created question '%s' → card_id=%s", payload.get("name"), result["id"])
+        return result["id"]
+
+    def create_dashboard(self, name: str, collection_id: int) -> int:
+        result = self.post("/api/dashboard", {"name": name, "collection_id": collection_id})
+        logger.info("Created dashboard '%s' → id=%s", name, result["id"])
+        return result["id"]
+
+    def add_dashcard(
+        self,
+        dashboard_id: int,
+        card_id: int,
+        row: int,
+        col: int,
+        size_x: int,
+        size_y: int,
+        visualization_settings: dict | None = None,
+    ) -> None:
+        # Metabase v0.47+: PUT replaces the full cards list
+        dash = self.get(f"/api/dashboard/{dashboard_id}")
+        kept = [
+            {
+                "id":                    dc["id"],
+                "card_id":               dc.get("card_id"),
+                "row":                   dc["row"],
+                "col":                   dc["col"],
+                "size_x":                dc["size_x"],
+                "size_y":                dc["size_y"],
+                "series":                dc.get("series", []),
+                "parameter_mappings":    dc.get("parameter_mappings", []),
+                "visualization_settings": dc.get("visualization_settings", {}),
+            }
+            for dc in dash.get("dashcards", [])
+        ]
+        kept.append({
+            "id":                    -1,
+            "card_id":               card_id,
+            "row":                   row,
+            "col":                   col,
+            "size_x":                size_x,
+            "size_y":                size_y,
+            "series":                [],
+            "parameter_mappings":    [],
+            "visualization_settings": visualization_settings or {},
+        })
+        self.put(f"/api/dashboard/{dashboard_id}/cards", {"cards": kept})
+        logger.info("Added card_id=%s to dashboard_id=%s", card_id, dashboard_id)
+
+    def publish_dashboard(self, dashboard_id: int) -> str:
+        """Enable public sharing and return the public URL (best-effort)."""
+        try:
+            result = self.post(f"/api/dashboard/{dashboard_id}/public_link", {})
+            uuid   = result.get("uuid", "")
+            url    = f"{self.base_url}/public/dashboard/{uuid}"
+            logger.info("Published dashboard %s → %s", dashboard_id, url)
+            return url
+        except MetabaseAPIError as exc:
+            logger.warning("Public sharing not enabled (skipping): %s", exc)
+            return f"{self.base_url}/dashboard/{dashboard_id}"
+
+    # ── Backward-compat wrappers (for scripts 01, 04, 05) ──────────────
+
+    def get_database_id(self, name: str) -> int:
+        result = self.find_database(name)
+        if result is None:
+            raise ValueError(f"Database '{name}' not found")
+        return result
+
+    def get_collection_id(self, name: str) -> int:
+        return self.find_or_create_collection(name)
+
+    def get_or_create_subcollection(self, name: str, parent_id: int) -> int:
+        return self.find_or_create_collection(name, parent_id=parent_id)
+
+    def list_all_questions(self) -> dict[str, int]:
+        cards = self.get("/api/card")
+        return {c["name"]: c["id"] for c in (cards if isinstance(cards, list) else [])}
+
+    def list_collection_cards(self, collection_id: int) -> dict[str, int]:
+        items = self.get(f"/api/collection/{collection_id}/items", models="card")
+        return {i["name"]: i["id"] for i in items.get("data", []) if i.get("model") == "card"}
+
+    def list_collection_dashboards(self, collection_id: int) -> dict[str, int]:
+        items = self.get(f"/api/collection/{collection_id}/items", models="dashboard")
+        return {i["name"]: i["id"] for i in items.get("data", []) if i.get("model") == "dashboard"}
 
     def create_native_question(
         self,
@@ -115,46 +217,17 @@ class MetabaseClient:
         database_id: int,
         display: str = "table",
     ) -> int:
-        url = f"{self.base_url}/api/card"
-        payload = {
-            "name": name,
-            "display": display,
+        return self.create_question({
+            "name":          name,
+            "display":       display,
             "collection_id": collection_id,
             "dataset_query": {
-                "type": "native",
+                "type":     "native",
                 "database": database_id,
-                "native": {"query": sql},
+                "native":   {"query": sql},
             },
             "visualization_settings": {},
-        }
-        logger.info("POST %s (create question '%s')", url, name)
-        resp = self.session.post(url, json=payload, timeout=30)
-        self._raise_for_status(resp, f"Failed to create question '{name}'")
-        card_id = resp.json()["id"]
-        logger.info("Created question '%s' → card_id=%s", name, card_id)
-        return card_id
-
-    def update_question(self, card_id: int, **kwargs) -> dict:
-        url = f"{self.base_url}/api/card/{card_id}"
-        logger.info("PUT %s (update card_id=%s)", url, card_id)
-        resp = self.session.put(url, json=kwargs, timeout=30)
-        self._raise_for_status(resp, f"Failed to update card {card_id}")
-        logger.info("Updated card_id=%s", card_id)
-        return resp.json()
-
-    # ------------------------------------------------------------------
-    # Dashboards
-    # ------------------------------------------------------------------
-
-    def create_dashboard(self, name: str, collection_id: int) -> int:
-        url = f"{self.base_url}/api/dashboard"
-        payload = {"name": name, "collection_id": collection_id}
-        logger.info("POST %s (create dashboard '%s')", url, name)
-        resp = self.session.post(url, json=payload, timeout=30)
-        self._raise_for_status(resp, f"Failed to create dashboard '{name}'")
-        dashboard_id = resp.json()["id"]
-        logger.info("Created dashboard '%s' → dashboard_id=%s", name, dashboard_id)
-        return dashboard_id
+        })
 
     def add_card_to_dashboard(
         self,
@@ -165,133 +238,34 @@ class MetabaseClient:
         size_x: int,
         size_y: int,
     ) -> dict:
-        # Metabase v0.47+: PUT replaces the full cards list, so fetch existing first
-        url = f"{self.base_url}/api/dashboard/{dashboard_id}/cards"
-        existing = self.get_dashboard_cards(dashboard_id)
-        kept = [
-            {
-                "id": dc["id"],
-                "card_id": dc.get("card_id"),
-                "row": dc["row"],
-                "col": dc["col"],
-                "size_x": dc["size_x"],
-                "size_y": dc["size_y"],
-                "series": dc.get("series", []),
-                "parameter_mappings": dc.get("parameter_mappings", []),
-                "visualization_settings": dc.get("visualization_settings", {}),
-            }
-            for dc in existing
-        ]
-        kept.append({
-            "id": -1,
-            "card_id": card_id,
-            "row": row,
-            "col": col,
-            "size_x": size_x,
-            "size_y": size_y,
-            "series": [],
-            "parameter_mappings": [],
-            "visualization_settings": {},
-        })
-        logger.info(
-            "PUT %s (add card_id=%s to dashboard_id=%s at row=%s col=%s)",
-            url, card_id, dashboard_id, row, col,
-        )
-        resp = self.session.put(url, json={"cards": kept}, timeout=30)
-        self._raise_for_status(resp, f"Failed to add card {card_id} to dashboard {dashboard_id}")
-        logger.info("Added card_id=%s to dashboard_id=%s", card_id, dashboard_id)
-        return resp.json()
+        self.add_dashcard(dashboard_id, card_id, row, col, size_x, size_y)
+        return {}
 
-    # ------------------------------------------------------------------
-    # Questions / Dashboards lookup
-    # ------------------------------------------------------------------
-
-    def list_all_questions(self) -> dict[str, int]:
-        """Return {card_name: card_id} across all collections."""
-        url = f"{self.base_url}/api/card"
-        logger.info("GET %s (all questions)", url)
-        resp = self.session.get(url, timeout=30)
-        self._raise_for_status(resp, "Failed to list all questions")
-        return {c["name"]: c["id"] for c in resp.json()}
-
-    def list_collection_dashboards(self, collection_id: int) -> dict[str, int]:
-        """Return {dashboard_name: dashboard_id} for a collection."""
-        url = f"{self.base_url}/api/collection/{collection_id}/items"
-        resp = self.session.get(url, params={"models": "dashboard"}, timeout=30)
-        self._raise_for_status(resp, f"Failed to list dashboards in collection {collection_id}")
-        return {
-            item["name"]: item["id"]
-            for item in resp.json().get("data", [])
-            if item.get("model") == "dashboard"
-        }
-
-    def get_dashboard_cards(self, dashboard_id: int) -> list[dict]:
-        """Return all dashcards currently on a dashboard."""
-        url = f"{self.base_url}/api/dashboard/{dashboard_id}"
-        resp = self.session.get(url, timeout=30)
-        self._raise_for_status(resp, f"Failed to get dashboard {dashboard_id}")
-        return resp.json().get("dashcards", [])
-
-    # ------------------------------------------------------------------
-    # Table / Field lookup
-    # ------------------------------------------------------------------
-
-    def get_table_fields(self, table_id: int) -> dict[str, int]:
-        """Return {field_name: field_id} for a given table."""
-        url = f"{self.base_url}/api/table/{table_id}/query_metadata"
-        logger.info("GET %s", url)
-        resp = self.session.get(url, timeout=30)
-        self._raise_for_status(resp, f"Failed to get fields for table {table_id}")
-        return {f["name"]: f["id"] for f in resp.json().get("fields", [])}
+    def get_dashboard_cards(self, dashboard_id: int) -> list:
+        return self.get(f"/api/dashboard/{dashboard_id}").get("dashcards", [])
 
     def get_table_id(self, database_id: int, table_name: str, schema: str = "warehouse") -> int:
-        """Find table_id by name + schema inside a database."""
-        url = f"{self.base_url}/api/database/{database_id}/metadata"
-        logger.info("GET %s (looking for %s.%s)", url, schema, table_name)
-        resp = self.session.get(url, timeout=60)
-        self._raise_for_status(resp, f"Failed to get metadata for database {database_id}")
-        for tbl in resp.json().get("tables", []):
+        data = self.get(f"/api/database/{database_id}/metadata")
+        for tbl in data.get("tables", []):
             if tbl["name"] == table_name and tbl.get("schema") == schema:
-                logger.info("Found table %s.%s → id=%s", schema, table_name, tbl["id"])
                 return tbl["id"]
         raise ValueError(f"Table '{schema}.{table_name}' not found in database {database_id}")
 
-    # ------------------------------------------------------------------
-    # Field metadata
-    # ------------------------------------------------------------------
+    def get_table_fields(self, table_id: int) -> dict[str, int]:
+        data = self.get(f"/api/table/{table_id}/query_metadata")
+        return {f["name"]: f["id"] for f in data.get("fields", [])}
 
     def set_field_semantic_type(self, field_id: int, semantic_type: str) -> dict:
-        url = f"{self.base_url}/api/field/{field_id}"
-        payload = {"semantic_type": semantic_type}
-        logger.info("PUT %s (field_id=%s → semantic_type=%s)", url, field_id, semantic_type)
-        resp = self.session.put(url, json=payload, timeout=30)
-        self._raise_for_status(resp, f"Failed to set semantic type for field {field_id}")
-        logger.info("Updated field_id=%s semantic_type=%s", field_id, semantic_type)
-        return resp.json()
+        return self.put(f"/api/field/{field_id}", {"semantic_type": semantic_type})
 
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
 
-    @staticmethod
-    def _raise_for_status(resp: requests.Response, message: str) -> None:
-        try:
-            resp.raise_for_status()
-        except requests.HTTPError as exc:
-            try:
-                detail = resp.json()
-            except Exception:
-                detail = resp.text
-            raise requests.HTTPError(
-                f"{message} — HTTP {resp.status_code}: {detail}",
-                response=resp,
-            ) from exc
-
+# ---------------------------------------------------------------------------
+# Factory
+# ---------------------------------------------------------------------------
 
 def client_from_env() -> MetabaseClient:
-    """Convenience factory that reads credentials from environment variables."""
     return MetabaseClient(
-        base_url=os.environ["METABASE_URL"],
-        username=os.environ["METABASE_USER"],
-        password=os.environ["METABASE_PASSWORD"],
+        url      = os.environ["METABASE_URL"],
+        username = os.environ["METABASE_USER"],
+        password = os.environ["METABASE_PASSWORD"],
     )
